@@ -1,0 +1,95 @@
+<section class="products-page">
+  <header class="products-hero">
+    <div>
+      <p class="eyebrow">Catalogue</p>
+      <h1>{{ isAdmin() ? 'Catalogue produits' : 'Produits e-store' }}</h1>
+      <p>{{ isAdmin() ? 'Consulte le catalogue public. La creation et la modification se font depuis Administration.' : 'Parcours les produits, consulte les details ou ajoute directement un article au panier.' }}</p>
+    </div>
+    <div class="hero-stat">
+      <strong>{{ filteredProducts.length }}</strong>
+      <span>produit(s)</span>
+    </div>
+  </header>
+
+  <section class="filters-panel">
+    <label>
+      Recherche
+      <input
+        type="text"
+        placeholder="Nom, description..."
+        [(ngModel)]="searchKeyword"
+        (input)="onSearchChange()"
+      >
+    </label>
+
+    <label>
+      Categorie
+      <select [(ngModel)]="selectedCategoryId" (change)="onCategoryChange()">
+        <option [ngValue]="null">Toutes les categories</option>
+        <option *ngFor="let category of categories" [ngValue]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+    </label>
+  </section>
+
+  <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner" role="status"></div>
+    <span>Chargement des produits...</span>
+  </div>
+
+  <section *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+    <div class="empty-mark">0</div>
+    <h2>Aucun produit trouve</h2>
+    <p>Essaie une autre recherche ou selectionne une autre categorie.</p>
+  </section>
+
+  <section *ngIf="!isLoading && filteredProducts.length > 0" class="products-grid">
+    <article *ngFor="let product of filteredProducts" class="product-card">
+      <div class="product-media">
+        <img
+          [src]="getProductImage(product.imageUrl, product.id, product.name)"
+          [alt]="product.name"
+          (error)="onImageError($event)"
+        >
+        <span class="category-chip">{{ product.categoryName || 'Categorie' }}</span>
+      </div>
+
+      <div class="product-body">
+        <div class="product-title">
+          <div class="product-mark">{{ productInitials(product.name) }}</div>
+          <div>
+            <h2>{{ product.name }}</h2>
+            <p>{{ product.categoryName || 'Produit' }}</p>
+          </div>
+        </div>
+
+        <p class="description">{{ product.description || 'Aucune description disponible.' }}</p>
+
+        <div class="product-footer">
+          <strong>{{ formatPrice(product.price) }}</strong>
+          <div class="actions">
+            <button type="button" class="secondary-button" (click)="viewProductDetail(product.id)">
+              Details
+            </button>
+            <button
+              *ngIf="!isAdmin()"
+              type="button"
+              class="primary-button"
+              (click)="addToCart(product)"
+              [disabled]="addingProductId === product.id"
+            >
+              {{ addingProductId === product.id ? 'Ajout...' : 'Ajouter au panier' }}
+            </button>
+            <button *ngIf="isAdmin()" type="button" class="primary-button" (click)="goToAdmin()">
+              Gerer
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</section>

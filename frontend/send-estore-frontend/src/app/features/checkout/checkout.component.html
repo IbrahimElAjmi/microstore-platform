@@ -1,0 +1,154 @@
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+  <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">Checkout</h1>
+  <div *ngIf="errorMessage" style="background: #fef2f2; border: 1px solid #ef4444; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="isLoading" style="text-align: center; padding: 40px;">Chargement du panier...</div>
+  
+  <div *ngIf="!isLoading" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <!-- Shipping Information -->
+    <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+      <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">Shipping Information</h2>
+      
+      <form [formGroup]="checkoutForm">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px;">Full Name</label>
+            <input 
+              type="text" 
+              formControlName="fullName" 
+              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+              placeholder="John Doe"
+            >
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px;">Email</label>
+            <input 
+              type="email" 
+              formControlName="email" 
+              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+              placeholder="john@example.com"
+            >
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Phone</label>
+          <input 
+            type="tel" 
+            formControlName="phone" 
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+            placeholder="+212 612345678"
+          >
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Address</label>
+          <input 
+            type="text" 
+            formControlName="address" 
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+            placeholder="123 Main Street"
+          >
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px;">City</label>
+            <input 
+              type="text" 
+              formControlName="city" 
+              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+              placeholder="Casablanca"
+            >
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px;">Postal Code</label>
+            <input 
+              type="text" 
+              formControlName="postalCode" 
+              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+              placeholder="20000"
+            >
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px;">Country</label>
+            <input 
+              type="text" 
+              formControlName="country" 
+              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+              placeholder="Morocco"
+            >
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Order Summary & Payment -->
+    <div>
+      <!-- Order Summary -->
+      <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">Order Summary</h2>
+        
+        <div style="margin-bottom: 15px;">
+          <div *ngFor="let item of cartItems" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <div style="display: flex; align-items: center;">
+              <img [src]="item.imageUrl" [alt]="item.productName" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">
+              <div>
+                <p style="font-weight: bold;">{{ item.productName }}</p>
+                <p style="font-size: 12px; color: #666;">Qty: {{ item.quantity }}</p>
+              </div>
+            </div>
+            <p style="font-weight: bold;">{{ formatPrice(item.totalPrice) }}</p>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid #eee; padding-top: 10px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>Subtotal:</span>
+            <span>{{ formatPrice(totalAmount) }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>Shipping:</span>
+            <span>{{ formatPrice(0) }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>Tax:</span>
+            <span>{{ formatPrice(0) }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; border-top: 1px solid #eee; padding-top: 10px;">
+            <span>Total:</span>
+            <span>{{ formatPrice(totalAmount) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Payment Method -->
+      <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">Payment Method</h2>
+        
+        <div>
+          <div *ngFor="let method of paymentMethods" style="margin-bottom: 10px;">
+            <input 
+              type="radio" 
+              [value]="method" 
+              [(ngModel)]="selectedPaymentMethod" 
+              style="margin-right: 10px;"
+            >
+            <label>{{ method }}</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Proceed Button -->
+      <button 
+        (click)="proceedToPayment()" 
+        [disabled]="!checkoutForm.valid || isLoading"
+        style="width: 100%; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;"
+      >
+        <span *ngIf="!isLoading">Proceed to Payment</span>
+        <span *ngIf="isLoading">Processing...</span>
+      </button>
+    </div>
+  </div>
+</div>

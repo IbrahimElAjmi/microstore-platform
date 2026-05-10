@@ -1,0 +1,71 @@
+<nav class="site-nav">
+  <div class="nav-shell">
+    <a class="brand" routerLink="/" aria-label="Send E-Store accueil">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" focusable="false">
+          <path d="M8 13h18l-2.1 10.1a3 3 0 0 1-2.9 2.4H12a3 3 0 0 1-2.9-2.4L7.2 8.8H4.5" />
+          <path d="M11 13 14.2 6h8.1L25 13" />
+          <path d="M13 27.5h.1M22 27.5h.1" />
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span>Send</span>
+        <strong>E-Store</strong>
+      </span>
+    </a>
+
+    <div class="desktop-links">
+      <a routerLink="/admin" routerLinkActive="active-link" *ngIf="isAdmin()">Administration</a>
+      <a routerLink="/products" routerLinkActive="active-link">{{ isAdmin() ? 'Catalogue' : 'Produits' }}</a>
+      <a routerLink="/cart" routerLinkActive="active-link" *ngIf="currentUser && !isAdmin()">
+        Panier
+        <span class="count-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+      </a>
+      <a routerLink="/orders" routerLinkActive="active-link" *ngIf="currentUser && !isAdmin()">Commandes</a>
+      <a routerLink="/about" routerLinkActive="active-link">A propos</a>
+      <a routerLink="/contact" routerLinkActive="active-link" *ngIf="!isAdmin()">Contact</a>
+    </div>
+
+    <div class="nav-actions">
+      <ng-container *ngIf="currentUser; else guestActions">
+        <div class="user-menu">
+          <button type="button" class="user-button" (click)="toggleUserMenu()" aria-label="Menu utilisateur">
+            <div class="avatar-nav">
+              <img *ngIf="currentUser.photoUrl" [src]="currentUser.photoUrl" class="avatar-nav-img" [alt]="currentUser.firstName">
+              <span *ngIf="!currentUser.photoUrl" class="avatar">{{ currentUser.firstName?.charAt(0) || currentUser.email?.charAt(0) || 'U' }}</span>
+            </div>
+            <span class="user-name">{{ currentUser.firstName || currentUser.email }}</span>
+            <span class="role-chip" *ngIf="currentUser.role === 'ADMIN'">Admin</span>
+          </button>
+
+          <div *ngIf="isUserMenuOpen" class="dropdown">
+            <a routerLink="/profile">Profil</a>
+            <button type="button" (click)="logout()">Deconnexion</button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #guestActions>
+        <a class="login-link" routerLink="/login">Connexion</a>
+      </ng-template>
+
+      <button type="button" class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Menu mobile">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isMobileMenuOpen" class="mobile-panel">
+    <a routerLink="/admin" *ngIf="isAdmin()">Administration</a>
+    <a routerLink="/products">{{ isAdmin() ? 'Catalogue' : 'Produits' }}</a>
+    <a routerLink="/cart" *ngIf="currentUser && !isAdmin()">Panier <span *ngIf="cartCount > 0">({{ cartCount }})</span></a>
+    <a routerLink="/orders" *ngIf="currentUser && !isAdmin()">Commandes</a>
+    <a routerLink="/profile" *ngIf="currentUser">Profil</a>
+    <a routerLink="/about">A propos</a>
+    <a routerLink="/contact" *ngIf="!isAdmin()">Contact</a>
+    <a routerLink="/login" *ngIf="!currentUser">Connexion</a>
+    <button type="button" *ngIf="currentUser" (click)="logout()">Deconnexion</button>
+  </div>
+</nav>

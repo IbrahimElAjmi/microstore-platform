@@ -1,0 +1,60 @@
+<section class="contact-page" *ngIf="content">
+  <header class="contact-hero">
+    <p class="eyebrow">Support</p>
+    <h1>{{ content.title }}</h1>
+    <p>{{ content.subtitle }}</p>
+  </header>
+
+  <div class="contact-layout">
+    <section class="message-panel">
+      <h2>Envoyer un message</h2>
+      <p>{{ content.supportText }}</p>
+
+      <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+
+      <form [formGroup]="contactForm" (ngSubmit)="submitMessage()" class="contact-form">
+        <label>
+          Nom complet
+          <input type="text" formControlName="fullName" placeholder="Votre nom">
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email" placeholder="votre@email.com">
+        </label>
+
+        <label>
+          Sujet
+          <input type="text" formControlName="subject" placeholder="Objet du message">
+        </label>
+
+        <label>
+          Message
+          <textarea rows="6" formControlName="message" placeholder="Expliquez votre demande"></textarea>
+        </label>
+
+        <button type="submit">Envoyer</button>
+      </form>
+    </section>
+
+    <aside class="contact-info">
+      <h2>Informations</h2>
+      <div class="info-item">
+        <span>Email</span>
+        <strong>{{ content.email }}</strong>
+      </div>
+      <div class="info-item">
+        <span>Telephone</span>
+        <strong>{{ content.phone }}</strong>
+      </div>
+      <div class="info-item">
+        <span>Adresse</span>
+        <strong>{{ content.address }}</strong>
+      </div>
+      <div class="info-item">
+        <span>Horaires</span>
+        <strong>{{ content.hours }}</strong>
+      </div>
+    </aside>
+  </div>
+</section>

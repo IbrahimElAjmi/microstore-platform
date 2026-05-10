@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: microstore-mysql
+    environment:
+      MYSQL_DATABASE: microstore
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - microstore-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: microstore-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - microstore-network
+
+  # Catalog Service
+  catalog-service:
+    build:
+      context: ./backend/catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microstore
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - microstore-network
+
+  # Customer Service
+  customer-service:
+    build:
+      context: ./backend/customer-service
+      dockerfile: Dockerfile
+    container_name: customer-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microstore
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - microstore-network
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./backend/inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microstore
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - microstore-network
+
+  # Billing Service
+  billing-service:
+    build:
+      context: ./backend/billing-service
+      dockerfile: Dockerfile
+    container_name: billing-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microstore
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - microstore-network
+
+  # Order Service
+  order-service:
+    build:
+      context: ./backend/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microstore
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - microstore-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      CATALOG_SERVICE_URL: http://catalog-service:8081
+      CUSTOMER_SERVICE_URL: http://customer-service:8082
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      BILLING_SERVICE_URL: http://billing-service:8084
+      ORDER_SERVICE_URL: http://order-service:8085
+    ports:
+      - "8080:8080"
+    depends_on:
+      - catalog-service
+      - customer-service
+      - inventory-service
+      - billing-service
+      - order-service
+    networks:
+      - microstore-network
+
+  # Frontend (Angular)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: microstore-frontend
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api-gateway
+    networks:
+      - microstore-network
+
+volumes:
+  mysql_data:
+
+networks:
+  microstore-network:
+    driver: bridge

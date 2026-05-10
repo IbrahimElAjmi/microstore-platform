@@ -1,0 +1,112 @@
+<section class="cart-page">
+  <header class="cart-header">
+    <div>
+      <p class="cart-eyebrow">Panier</p>
+      <h1>Mes articles</h1>
+      <p>Verifie tes produits avant de passer au paiement.</p>
+    </div>
+    <a routerLink="/products" class="secondary-link">Continuer les achats</a>
+  </header>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner" role="status"></div>
+    <span>Chargement du panier...</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+    <section *ngIf="!authService.getCurrentUser()" class="empty-state">
+      <div class="empty-icon">U</div>
+      <h2>Connexion requise</h2>
+      <p>Connecte-toi pour consulter ton panier et finaliser tes commandes.</p>
+      <div class="empty-actions">
+        <a routerLink="/login" class="primary-button">Se connecter</a>
+        <a routerLink="/products" class="secondary-button">Voir le catalogue</a>
+      </div>
+    </section>
+
+    <section *ngIf="authService.getCurrentUser() && pendingOrders.length === 0" class="empty-state">
+      <div class="empty-icon">0</div>
+      <h2>Panier vide</h2>
+      <p>Ajoute un produit depuis le catalogue pour commencer une commande.</p>
+      <a routerLink="/products" class="primary-button">Voir les produits</a>
+    </section>
+
+    <div *ngIf="authService.getCurrentUser() && pendingOrders.length > 0" class="cart-layout">
+      <section class="items-panel">
+        <div class="panel-title">
+          <h2>Articles en attente</h2>
+          <span>{{ pendingOrders.length }} article(s)</span>
+        </div>
+
+        <article *ngFor="let order of pendingOrders" class="cart-item">
+          <img [src]="order.imageUrl" [alt]="order.productName">
+          <div class="item-main">
+            <div>
+              <h3>{{ order.productName }}</h3>
+              <p>Commande en attente</p>
+            </div>
+            <span class="status-pill" [ngClass]="getStatusBadgeClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
+          <div class="item-meta">
+            <div>
+              <small>Quantite</small>
+              <strong>{{ order.quantity }}</strong>
+            </div>
+            <div>
+              <small>Prix unitaire</small>
+              <strong>{{ formatPrice(order.productPrice) }}</strong>
+            </div>
+            <div>
+              <small>Total</small>
+              <strong>{{ formatPrice(order.totalPrice) }}</strong>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button type="button" class="danger-button" (click)="deleteOrder(order.id)">
+              Supprimer
+            </button>
+            <button
+              type="button"
+              class="primary-button compact"
+              (click)="confirmOrder(order)"
+              [disabled]="!canProcessPayment(order)"
+            >
+              Payer
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <aside class="summary-panel">
+        <h2>Resume</h2>
+        <div class="summary-row">
+          <span>Sous-total</span>
+          <strong>{{ formatPrice(getTotalAmount()) }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Livraison</span>
+          <strong>{{ formatPrice(0) }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Taxe</span>
+          <strong>{{ formatPrice(0) }}</strong>
+        </div>
+        <div class="summary-total">
+          <span>Total a payer</span>
+          <strong>{{ formatPrice(getTotalAmount()) }}</strong>
+        </div>
+        <button type="button" class="primary-button full" (click)="proceedToCheckout()">
+          Payer tout le panier
+        </button>
+        <p class="summary-note">
+          Le paiement confirme les commandes et genere les factures dans le backend.
+        </p>
+      </aside>
+    </div>
+  </ng-container>
+</section>

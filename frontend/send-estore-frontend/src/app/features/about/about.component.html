@@ -1,0 +1,44 @@
+<section class="about-page" *ngIf="content">
+  <header class="about-hero">
+    <div>
+      <p class="eyebrow">E-Store</p>
+      <h1>{{ content.title }}</h1>
+      <p>{{ content.subtitle }}</p>
+      <div class="hero-actions">
+        <a routerLink="/products" class="primary-link">Voir les produits</a>
+        <a routerLink="/contact" class="secondary-link" *ngIf="!isAdmin()">Nous contacter</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <strong>Commerce fiable</strong>
+      <span>Catalogue, panier, paiement et suivi dans une seule experience.</span>
+    </div>
+  </header>
+
+  <section class="content-grid">
+    <article class="info-panel large">
+      <p class="eyebrow">Notre histoire</p>
+      <h2>Pourquoi E-Store existe</h2>
+      <p>{{ content.story }}</p>
+    </article>
+
+    <article class="info-panel">
+      <p class="eyebrow">Mission</p>
+      <h2>Notre engagement</h2>
+      <p>{{ content.mission }}</p>
+    </article>
+  </section>
+
+  <section class="values-section">
+    <div class="section-heading">
+      <p class="eyebrow">Valeurs</p>
+      <h2>Ce qui guide le service</h2>
+    </div>
+    <div class="values-grid">
+      <article *ngFor="let value of getValues()" class="value-card">
+        <span></span>
+        <strong>{{ value }}</strong>
+      </article>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,93 @@
+<section class="profile-page">
+  <div class="profile-header">
+    <div>
+      <p class="profile-eyebrow">Compte</p>
+      <h1>Mon profil</h1>
+      <p>Gere tes informations personnelles et ton adresse de livraison.</p>
+    </div>
+    <a routerLink="/orders" class="profile-link">Voir mes commandes</a>
+  </div>
+
+  <div *ngIf="isLoading" class="profile-loading">
+    <div class="spinner" role="status"></div>
+    <span>Chargement du profil...</span>
+  </div>
+
+  <div *ngIf="!isLoading && user" class="profile-grid">
+    <aside class="identity-card">
+      <div class="avatar-container">
+        <img *ngIf="profileForm.value.photoUrl" [src]="profileForm.value.photoUrl" class="avatar-img" [alt]="user.firstName">
+        <div *ngIf="!profileForm.value.photoUrl" class="avatar">{{ getInitials() }}</div>
+      </div>
+      <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+      <p>{{ user.email }}</p>
+      <span class="role-badge" [ngClass]="getRoleBadgeClass()">{{ getRoleText() }}</span>
+
+      <dl class="identity-list">
+        <div>
+          <dt>Identifiant</dt>
+          <dd>#{{ user.id }}</dd>
+        </div>
+        <div>
+          <dt>Telephone</dt>
+          <dd>{{ profileForm.value.phone || 'Non renseigne' }}</dd>
+        </div>
+        <div>
+          <dt>Ville</dt>
+          <dd>{{ profileForm.value.city || 'Non renseignee' }}</dd>
+        </div>
+      </dl>
+    </aside>
+
+    <section class="profile-card">
+      <div class="card-title">
+        <div>
+          <h2>Informations personnelles</h2>
+          <p>Mets a jour ta photo et tes informations de livraison.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="profile-form">
+        <label>
+          Photo de profil (URL)
+          <input type="text" formControlName="photoUrl" placeholder="https://exemple.com/photo.jpg">
+          <small class="help-text">Colle l'URL d'une image pour changer ta photo de profil.</small>
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Telephone
+            <input type="tel" formControlName="phone" placeholder="+212 6 12 34 56 78">
+          </label>
+
+          <label>
+            Ville
+            <input type="text" formControlName="city" placeholder="Casablanca">
+          </label>
+        </div>
+
+        <label>
+          Adresse
+          <input type="text" formControlName="address" placeholder="Rue, quartier, numero">
+        </label>
+
+        <label>
+          Pays
+          <input type="text" formControlName="country" placeholder="Maroc">
+        </label>
+
+        <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+        <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="loadUserProfile()" [disabled]="isSaving">
+            Annuler
+          </button>
+          <button type="submit" class="primary-button" [disabled]="isSaving">
+            {{ isSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>

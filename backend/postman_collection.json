@@ -1,0 +1,128 @@
+{
+  "info": {
+    "name": "E-store Microservices",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "customerUrl", "value": "http://localhost:8081" },
+    { "key": "catalogUrl", "value": "http://localhost:8082" },
+    { "key": "inventoryUrl", "value": "http://localhost:8083" },
+    { "key": "orderUrl", "value": "http://localhost:8084" },
+    { "key": "billingUrl", "value": "http://localhost:8085" },
+    { "key": "adminId", "value": "1" },
+    { "key": "clientId", "value": "2" },
+    { "key": "categoryId", "value": "1" },
+    { "key": "productId", "value": "1" },
+    { "key": "orderId", "value": "1" },
+    { "key": "billingId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Customer - register admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{customerUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Admin\",\n  \"lastName\": \"Demo\",\n  \"email\": \"admin.demo@estore.com\",\n  \"password\": \"admin123\",\n  \"role\": \"ADMIN\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Customer - login admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{customerUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@estore.com\",\n  \"password\": \"admin123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Catalog - create category",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{catalogUrl}}/api/categories?requestedBy={{adminId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Demo Category\",\n  \"description\": \"Category created from Postman\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Catalog - create product",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{catalogUrl}}/api/products?requestedBy={{adminId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Demo Product\",\n  \"description\": \"Product created from Postman\",\n  \"price\": 199.0,\n  \"imageUrl\": \"https://example.com/product.jpg\",\n  \"categoryId\": {{categoryId}}\n}"
+        }
+      }
+    },
+    {
+      "name": "Inventory - update stock",
+      "request": {
+        "method": "POST",
+        "url": "{{inventoryUrl}}/api/inventory/{{productId}}?quantity=30"
+      }
+    },
+    {
+      "name": "Order - create order",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{orderUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": {{clientId}},\n  \"productId\": {{productId}},\n  \"quantity\": 2,\n  \"status\": \"PENDING\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Billing - create billing",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{billingUrl}}/api/billing",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": {{orderId}},\n  \"paymentMethod\": \"CARD\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Billing - pay billing",
+      "request": {
+        "method": "PUT",
+        "url": "{{billingUrl}}/api/billing/{{billingId}}/pay"
+      }
+    },
+    {
+      "name": "All products",
+      "request": {
+        "method": "GET",
+        "url": "{{catalogUrl}}/api/products"
+      }
+    },
+    {
+      "name": "All orders",
+      "request": {
+        "method": "GET",
+        "url": "{{orderUrl}}/api/orders"
+      }
+    },
+    {
+      "name": "All billings",
+      "request": {
+        "method": "GET",
+        "url": "{{billingUrl}}/api/billing"
+      }
+    }
+  ]
+}

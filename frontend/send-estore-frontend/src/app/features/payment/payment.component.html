@@ -1,0 +1,81 @@
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-[1fr_380px] gap-6">
+    <section class="bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-6">
+      <p class="text-sm font-semibold text-[#2563eb] uppercase">Paiement</p>
+      <h1 class="text-2xl font-bold text-[#0f172a] mt-1 mb-6">Finaliser la commande</h1>
+
+      <div class="grid sm:grid-cols-3 gap-3 mb-6">
+        <button
+          *ngFor="let method of paymentMethods"
+          type="button"
+          class="border rounded-lg px-4 py-3 text-left font-semibold transition-colors"
+          [ngClass]="checkoutData?.paymentMethod === method ? 'border-[#2563eb] bg-[#eff6ff] text-[#1d4ed8]' : 'border-[#e2e8f0] text-[#334155] hover:bg-[#f8fafc]'"
+          (click)="selectPaymentMethod(method)"
+        >
+          {{ getPaymentLabel(method) }}
+        </button>
+      </div>
+
+      <form *ngIf="checkoutData?.paymentMethod === 'CARD'" [formGroup]="paymentForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[#0f172a] mb-2">Numero de carte</label>
+          <input class="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]" formControlName="cardNumber" maxlength="16" placeholder="1234567890123456">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#0f172a] mb-2">Nom sur la carte</label>
+          <input class="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]" formControlName="cardName" placeholder="Client User">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-[#0f172a] mb-2">Expiration</label>
+            <input class="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]" formControlName="expiryDate" maxlength="5" placeholder="12/30">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#0f172a] mb-2">CVV</label>
+            <input class="w-full px-3 py-2 border border-[#cbd5e1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb]" formControlName="cvv" maxlength="4" placeholder="123">
+          </div>
+        </div>
+      </form>
+
+      <div *ngIf="checkoutData?.paymentMethod !== 'CARD'" class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-5 text-[#475569]">
+        La commande sera confirmee. La facture restera en attente jusqu'au paiement effectif.
+      </div>
+
+      <div *ngIf="errorMessage" class="mt-5 bg-[#fef2f2] border border-[#ef4444] text-[#991b1b] px-4 py-3 rounded-lg">
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="button"
+        (click)="processPayment()"
+        [disabled]="!canProcessPayment()"
+        class="mt-6 w-full bg-[#16a34a] text-white py-3 px-4 rounded-lg hover:bg-[#15803d] transition-colors font-semibold disabled:bg-[#cbd5e1] disabled:cursor-not-allowed"
+      >
+        {{ isLoading ? 'Traitement...' : (checkoutData?.paymentMethod === 'CARD' ? 'Payer maintenant' : 'Confirmer la commande') }}
+      </button>
+    </section>
+
+    <aside class="bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-6 h-fit">
+      <h2 class="text-lg font-bold text-[#0f172a] mb-4">Resume</h2>
+      <div class="space-y-3">
+        <div *ngFor="let item of checkoutData?.cartItems" class="flex justify-between gap-4 border-b border-[#e2e8f0] pb-3">
+          <div>
+            <p class="font-semibold text-[#0f172a]">{{ item.productName || 'Produit' }}</p>
+            <p class="text-sm text-[#64748b]">Quantite: {{ item.quantity }}</p>
+          </div>
+          <p class="font-semibold">{{ formatPrice(item.totalPrice) }}</p>
+        </div>
+      </div>
+
+      <div class="mt-5 space-y-2 text-sm">
+        <div class="flex justify-between"><span>Sous-total</span><span>{{ formatPrice(checkoutData?.subtotal || 0) }}</span></div>
+        <div class="flex justify-between"><span>Livraison</span><span>{{ formatPrice(checkoutData?.shipping || 0) }}</span></div>
+        <div class="flex justify-between"><span>Taxe</span><span>{{ formatPrice(checkoutData?.tax || 0) }}</span></div>
+        <div class="flex justify-between text-lg font-bold pt-3 border-t border-[#e2e8f0]">
+          <span>Total</span>
+          <span class="text-[#2563eb]">{{ formatPrice(checkoutData?.totalAmount || 0) }}</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

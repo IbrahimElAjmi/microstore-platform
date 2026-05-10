@@ -1,0 +1,352 @@
+<section class="admin-page">
+  <header class="admin-hero">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1>Gestion e-store</h1>
+      <p>L administrateur gere les clients, les produits, les categories et le stock. Il ne peut pas passer de commande.</p>
+    </div>
+    <div class="hero-metrics">
+      <div>
+        <strong>{{ products.length }}</strong>
+        <span>Produits</span>
+      </div>
+      <div>
+        <strong>{{ clients.length }}</strong>
+        <span>Clients</span>
+      </div>
+      <div>
+        <strong>{{ orders.length }}</strong>
+        <span>Reservations</span>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+  <div class="tabs">
+    <button type="button" [class.active]="activeTab === 'catalog'" (click)="setTab('catalog')">Catalogue</button>
+    <button type="button" [class.active]="activeTab === 'clients'" (click)="setTab('clients')">Clients</button>
+    <button type="button" [class.active]="activeTab === 'reservations'" (click)="setTab('reservations')">Reservations</button>
+    <button type="button" [class.active]="activeTab === 'pages'" (click)="setTab('pages')">Pages</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner" role="status"></div>
+    <span>Chargement du tableau de bord...</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <section *ngIf="activeTab === 'catalog'" class="admin-grid">
+      <div class="form-panel">
+        <h2>{{ editingProduct ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
+        <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="admin-form">
+          <label>
+            Nom
+            <input type="text" formControlName="name" placeholder="Nom du produit">
+          </label>
+
+          <label>
+            Description
+            <textarea rows="4" formControlName="description" placeholder="Description courte"></textarea>
+          </label>
+
+          <div class="form-row">
+            <label>
+              Prix
+              <input type="number" min="0" step="0.01" formControlName="price">
+            </label>
+            <label>
+              Stock
+              <input type="number" min="0" step="1" formControlName="stock">
+            </label>
+          </div>
+
+          <label>
+            Categorie
+            <select formControlName="categoryId">
+              <option [ngValue]="null">Choisir une categorie</option>
+              <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            Image URL
+            <input type="url" formControlName="imageUrl" placeholder="https://...">
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-button" [disabled]="isSaving">
+              {{ isSaving ? 'Enregistrement...' : (editingProduct ? 'Mettre a jour' : 'Creer') }}
+            </button>
+            <button type="button" class="secondary-button" (click)="resetProductForm()" *ngIf="editingProduct">
+              Annuler
+            </button>
+          </div>
+        </form>
+
+        <div class="category-box">
+          <h3>{{ editingCategory ? 'Modifier la categorie' : 'Nouvelle categorie' }}</h3>
+          <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()" class="admin-form compact">
+            <label>
+              Nom
+              <input type="text" formControlName="name" placeholder="Categorie">
+            </label>
+            <label>
+              Description
+              <input type="text" formControlName="description" placeholder="Optionnel">
+            </label>
+            <div class="form-actions">
+              <button type="submit" class="secondary-button" [disabled]="isCategorySaving">
+                {{ isCategorySaving ? 'Enregistrement...' : (editingCategory ? 'Mettre a jour' : 'Ajouter la categorie') }}
+              </button>
+              <button type="button" class="secondary-button" (click)="resetCategoryForm()" *ngIf="editingCategory">
+                Annuler
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="catalog-panels">
+        <div class="table-panel">
+          <div class="panel-heading">
+            <h2>Produits</h2>
+            <span>{{ products.length }} produit(s)</span>
+          </div>
+
+          <div class="responsive-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Categorie</th>
+                  <th>Prix</th>
+                  <th>Stock</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let product of products">
+                  <td>
+                    <strong>{{ product.name }}</strong>
+                  </td>
+                  <td>{{ getCategoryName(product.categoryId) }}</td>
+                  <td>{{ formatPrice(product.price) }}</td>
+                  <td>
+                    <span class="stock-pill" [class.empty]="!product.stock">{{ product.stock ?? '-' }}</span>
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="secondary-button small" (click)="editProduct(product)">Modifier</button>
+                      <button type="button" class="danger-button small" (click)="deleteProduct(product)">Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-panel">
+          <div class="panel-heading">
+            <h2>Categories</h2>
+            <span>{{ categories.length }} categorie(s)</span>
+          </div>
+
+          <div class="responsive-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Categorie</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let category of categories">
+                  <td>
+                    <strong>{{ category.name }}</strong>
+                    <small>#{{ category.id }}</small>
+                  </td>
+                  <td>{{ category.description || '-' }}</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="secondary-button small" (click)="editCategory(category)">Modifier</button>
+                      <button type="button" class="danger-button small" (click)="deleteCategory(category)">Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'clients'" class="admin-grid">
+      <div class="form-panel">
+        <h2>{{ editingClient ? 'Modifier le client' : 'Nouveau client' }}</h2>
+        <form [formGroup]="clientForm" (ngSubmit)="saveClient()" class="admin-form">
+          <div class="form-row">
+            <label>
+              Prenom
+              <input type="text" formControlName="firstName" placeholder="Prenom">
+            </label>
+            <label>
+              Nom
+              <input type="text" formControlName="lastName" placeholder="Nom">
+            </label>
+          </div>
+
+          <label>
+            Email
+            <input type="email" formControlName="email" placeholder="client@email.com">
+          </label>
+
+          <label>
+            Mot de passe
+            <input type="password" formControlName="password" [placeholder]="editingClient ? 'Laisser vide pour garder le mot de passe' : 'Mot de passe client'">
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-button" [disabled]="isClientSaving">
+              {{ isClientSaving ? 'Enregistrement...' : (editingClient ? 'Mettre a jour' : 'Creer client') }}
+            </button>
+            <button type="button" class="secondary-button" (click)="resetClientForm()" *ngIf="editingClient">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-panel">
+        <div class="panel-heading">
+          <h2>Clients</h2>
+          <span>{{ clients.length }} client(s)</span>
+        </div>
+
+        <div class="responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>ID</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let client of clients">
+                <td>
+                  <strong>{{ client.firstName }} {{ client.lastName }}</strong>
+                </td>
+                <td>{{ client.email }}</td>
+                <td><span class="client-pill">{{ client.role }}</span></td>
+                <td>#{{ client.id }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button type="button" class="secondary-button small" (click)="editClient(client)">Modifier</button>
+                    <button type="button" class="danger-button small" (click)="deleteClient(client)">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'reservations'" class="admin-grid single">
+      <div class="table-panel">
+        <div class="panel-heading">
+          <h2>Toutes les reservations</h2>
+          <span>{{ orders.length }} commande(s) au total</span>
+        </div>
+
+        <div class="responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Produit</th>
+                <th>Quantite</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of orders">
+                <td>#{{ order.id }}</td>
+                <td>{{ order.createdAt | date:'short' }}</td>
+                <td>
+                  <strong>{{ getClientName(order.customerId) }}</strong>
+                </td>
+                <td>
+                  {{ getProductName(order.productId) }}
+                </td>
+                <td>{{ order.quantity }}</td>
+                <td><strong>{{ formatPrice(order.totalPrice) }}</strong></td>
+                <td>
+                  <span class="status-pill" [ngClass]="getStatusClass(order.status)">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td>
+                  <div class="row-actions compact">
+                    <select #statusSelect (change)="updateOrderStatus(order.id, statusSelect.value)" class="status-select">
+                      <option [selected]="order.status === 'PENDING'" value="PENDING">PENDING</option>
+                      <option [selected]="order.status === 'CONFIRMED'" value="CONFIRMED">CONFIRMED</option>
+                      <option [selected]="order.status === 'DELIVERED'" value="DELIVERED">DELIVERED</option>
+                      <option [selected]="order.status === 'CANCELLED'" value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="orders.length === 0">
+                <td colspan="8" class="empty-state">Aucune reservation pour le moment.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'pages'" class="pages-panel single">
+      <div class="form-panel">
+        <h2>Page A propos</h2>
+        <form [formGroup]="aboutForm" class="admin-form">
+          <label>
+            Titre
+            <input type="text" formControlName="title">
+          </label>
+          <label>
+            Sous-titre
+            <input type="text" formControlName="subtitle">
+          </label>
+          <label>
+            Histoire
+            <textarea rows="5" formControlName="story"></textarea>
+          </label>
+          <label>
+            Mission
+            <textarea rows="4" formControlName="mission"></textarea>
+          </label>
+          <label>
+            Valeurs
+            <textarea rows="3" formControlName="values" placeholder="Valeur 1, Valeur 2, Valeur 3"></textarea>
+          </label>
+        </form>
+      </div>
+
+      <div class="page-actions">
+        <button type="button" class="primary-button" (click)="savePages()">Enregistrer la page</button>
+        <button type="button" class="secondary-button" (click)="resetPages()">Restaurer le contenu</button>
+      </div>
+    </section>
+  </ng-container>
+</section>

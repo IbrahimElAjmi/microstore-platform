@@ -1,0 +1,161 @@
+
+
+services:
+
+  # ── DATABASES ─────────────────────────────────────────────
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - estore-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MICROSERVICES ─────────────────────────────────────────
+
+  customer-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: customer-service
+    working_dir: /app
+    command: mvn spring-boot:run
+    volumes:
+      - ./customer-service:/app
+      - maven-repo:/root/.m2
+    ports:
+      - "9091:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/customer_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - estore-network
+
+  catalog-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: catalog-service
+    working_dir: /app
+    command: mvn spring-boot:run
+    volumes:
+      - ./catalog-service:/app
+      - maven-repo:/root/.m2
+    ports:
+      - "9092:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/catalog_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+    networks:
+      - estore-network
+
+  inventory-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: inventory-service
+    working_dir: /app
+    command: mvn spring-boot:run
+    volumes:
+      - ./inventory-service:/app
+      - maven-repo:/root/.m2
+    ports:
+      - "9093:8083"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/inventory_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - estore-network
+
+  order-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: order-service
+    working_dir: /app
+    command: mvn spring-boot:run
+    volumes:
+      - ./order-service:/app
+      - maven-repo:/root/.m2
+    ports:
+      - "9094:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      customer-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+      CATALOG_SERVICE_URL: http://catalog-service:8082
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+    networks:
+      - estore-network
+
+  billing-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: billing-service
+    working_dir: /app
+    command: mvn spring-boot:run
+    volumes:
+      - ./billing-service:/app
+      - maven-repo:/root/.m2
+    ports:
+      - "9095:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/billing_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      ORDER_SERVICE_URL: http://order-service:8084
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      CATALOG_SERVICE_URL: http://catalog-service:8082
+    networks:
+      - estore-network
+
+# ── VOLUMES & NETWORK ─────────────────────────────────────
+
+volumes:
+  mysql_data:
+  maven-repo:
+
+networks:
+  estore-network:
+    driver: bridge

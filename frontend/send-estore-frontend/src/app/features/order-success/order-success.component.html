@@ -1,0 +1,90 @@
+<div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+  <div style="border: 1px solid #ddd; padding: 30px; border-radius: 8px; text-align: center;">
+    <!-- Success Icon -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; margin: 0 auto;">
+        <svg style="width: 40px; height: 40px; color: #16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Success Message -->
+    <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 15px;">Order Confirmed!</h1>
+    <p style="font-size: 16px; color: #666; margin-bottom: 30px;">Thank you for your purchase. Your order has been successfully placed.</p>
+    
+    <!-- Order Details -->
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: left;">
+      <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">Order Details</h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <h3 style="font-weight: bold; margin-bottom: 10px;">Order Information</h3>
+          <div style="font-size: 14px; line-height: 1.8;">
+            <p><strong>Order Number:</strong> {{ orderData?.orderNumber }}</p>
+            <p><strong>Status:</strong> <span style="color: #16a34a; font-weight: bold;">{{ orderData?.status }}</span></p>
+            <p><strong>Payment Method:</strong> {{ orderData?.paymentMethod }}</p>
+            <p><strong>Total Amount:</strong> <span style="font-weight: bold; color: #2563eb;">{{ formatPrice(orderData?.totalAmount) }}</span></p>
+          </div>
+        </div>
+        
+        <div>
+          <h3 style="font-weight: bold; margin-bottom: 10px;">Shipping Information</h3>
+          <div style="font-size: 14px; line-height: 1.8;">
+            <p><strong>Name:</strong> {{ orderData?.customerInfo?.fullName || orderData?.customerInfo?.name }}</p>
+            <p><strong>Address:</strong> {{ orderData?.customerInfo?.address }}</p>
+            <p><strong>City:</strong> {{ orderData?.customerInfo?.city }}</p>
+            <p><strong>Phone:</strong> {{ orderData?.customerInfo?.phone }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Delivery Estimate -->
+      <div style="margin-top: 20px; padding: 15px; background: #eff6ff; border-radius: 8px;">
+        <p style="font-size: 14px; color: #1e40af;">
+          <strong>Estimated Delivery:</strong> {{ estimatedDelivery }}
+        </p>
+        <p style="font-size: 12px; color: #2563eb; margin-top: 5px;">You will receive a tracking number once your order ships.</p>
+      </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: left;">
+      <h3 style="font-weight: bold; margin-bottom: 15px;">Order Items</h3>
+      <div>
+        <div *ngFor="let item of orderData?.items" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+          <div style="display: flex; align-items: center;">
+            <img [src]="item.imageUrl || 'https://picsum.photos/seed/product-' + item.productId + '/100/100.jpg'" [alt]="item.productName || item.name" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 4px;">
+            <div>
+              <p style="font-weight: bold;">{{ item.productName || item.name || 'Produit' }}</p>
+              <p style="font-size: 12px; color: #666;">Qty: {{ item.quantity }}</p>
+            </div>
+          </div>
+          <p style="font-weight: bold;">{{ formatPrice(item.totalPrice || ((item.price || item.productPrice || 0) * item.quantity)) }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 15px; justify-content: center;">
+      <button 
+        (click)="trackOrder()" 
+        style="padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;"
+      >
+        Track Order
+      </button>
+      <button 
+        (click)="continueShopping()" 
+        style="padding: 12px 24px; background: #e5e7eb; color: #1f2937; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;"
+      >
+        Continue Shopping
+      </button>
+    </div>
+    
+    <!-- Additional Info -->
+    <div style="margin-top: 30px; font-size: 14px; color: #666;">
+      <p>A confirmation email has been sent to {{ orderData?.customerInfo?.email }}</p>
+      <p style="margin-top: 10px;">For any questions, please contact our customer support.</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,183 @@
+<section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-blue-700">Commandes</p>
+      <h1 class="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">Historique des commandes</h1>
+      <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+        Consulte les commandes confirmees, livrees ou annulees et suis leur statut en temps reel.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm">
+      <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Total commande</p>
+      <p class="mt-1 text-2xl font-bold text-slate-950">{{ formatPrice(getTotalAmount()) }}</p>
+    </div>
+  </header>
+
+  <div *ngIf="successMessage" class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="rounded-lg border border-slate-200 bg-white py-20 text-center shadow-sm">
+    <div class="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" role="status">
+      <span class="sr-only">Chargement...</span>
+    </div>
+    <p class="mt-4 text-sm font-medium text-slate-600">Chargement des commandes...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm font-medium text-slate-500">Toutes</p>
+        <p class="mt-2 text-3xl font-bold text-slate-950">{{ getOrdersCount() }}</p>
+      </div>
+      <div class="rounded-lg border border-blue-100 bg-blue-50 p-5 shadow-sm">
+        <p class="text-sm font-medium text-blue-700">Confirmees</p>
+        <p class="mt-2 text-3xl font-bold text-blue-900">{{ getOrdersCount('CONFIRMED') }}</p>
+      </div>
+      <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+        <p class="text-sm font-medium text-emerald-700">Livrees</p>
+        <p class="mt-2 text-3xl font-bold text-emerald-900">{{ getOrdersCount('DELIVERED') }}</p>
+      </div>
+    </section>
+
+    <section class="mb-6 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="px-1 text-base font-semibold text-slate-950">Liste des commandes</h2>
+          <div class="mt-1 flex flex-wrap items-center gap-2 px-1">
+            <p class="text-sm text-slate-500">
+              {{ getPaginationStart() }}-{{ getPaginationEnd() }} sur {{ filteredOrders.length }} commande(s)
+            </p>
+            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              10 par page
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 rounded-lg bg-slate-100 p-1">
+          <button
+            type="button"
+            class="rounded-md px-3 py-2 text-sm font-semibold"
+            [ngClass]="currentFilter === 'all' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+            (click)="filterByStatus('all')"
+          >
+            Toutes
+          </button>
+          <button
+            type="button"
+            class="rounded-md px-3 py-2 text-sm font-semibold"
+            [ngClass]="currentFilter === 'CONFIRMED' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+            (click)="filterByStatus('CONFIRMED')"
+          >
+            Confirmees
+          </button>
+          <button
+            type="button"
+            class="rounded-md px-3 py-2 text-sm font-semibold"
+            [ngClass]="currentFilter === 'DELIVERED' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+            (click)="filterByStatus('DELIVERED')"
+          >
+            Livrees
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="filteredOrders.length === 0" class="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-xl font-bold text-slate-500">0</div>
+      <h2 class="mt-4 text-lg font-semibold text-slate-950">Aucune commande trouvee</h2>
+      <p class="mt-2 text-sm text-slate-500">Change le filtre ou finalise une commande depuis ton panier.</p>
+    </section>
+
+    <section *ngIf="filteredOrders.length > 0" class="space-y-4">
+      <article
+        *ngFor="let order of getPaginatedOrders(); trackBy: trackByOrderId"
+        class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md"
+      >
+        <div class="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex min-w-0 items-start gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-sm font-bold text-white">
+              #{{ order.id }}
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-lg font-bold text-slate-950">Commande #{{ order.id }}</h2>
+                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" [ngClass]="getStatusBadgeClass(order.status)">
+                  {{ getStatusText(order.status) }}
+                </span>
+              </div>
+              <p class="mt-1 text-sm text-slate-500">{{ formatDate(order.createdAt) }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[560px]">
+            <div class="rounded-lg bg-slate-50 px-4 py-3">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Produit</p>
+              <p class="mt-1 text-sm font-bold text-slate-950">Article commande</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 px-4 py-3">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Quantite</p>
+              <p class="mt-1 text-sm font-bold text-slate-950">{{ order.quantity }}</p>
+            </div>
+            <div class="rounded-lg bg-slate-50 px-4 py-3">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Client</p>
+              <p class="mt-1 text-sm font-bold text-slate-950">#{{ order.customerId }}</p>
+            </div>
+            <div class="rounded-lg bg-blue-50 px-4 py-3">
+              <p class="text-xs font-medium uppercase tracking-wide text-blue-700">Montant</p>
+              <p class="mt-1 text-sm font-bold text-blue-950">{{ formatPrice(order.totalPrice) }}</p>
+            </div>
+          </div>
+
+          <div class="flex shrink-0 items-center lg:justify-end">
+            <button
+              *ngIf="canMarkAsDelivered(order)"
+              type="button"
+              class="w-full rounded-md bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300 lg:w-auto"
+              (click)="markAsDelivered(order)"
+              [disabled]="updatingOrderId === order.id"
+            >
+              {{ updatingOrderId === order.id ? 'Mise a jour...' : 'Marquer livree' }}
+            </button>
+            <span *ngIf="!canMarkAsDelivered(order)" class="rounded-md bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-500">
+              Aucune action
+            </span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <nav
+      *ngIf="filteredOrders.length > pageSize"
+      class="mt-6 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      aria-label="Pagination commandes"
+    >
+      <p class="text-sm font-medium text-slate-600">
+        Page {{ currentPage }} sur {{ getTotalPages() }}
+      </p>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300"
+          (click)="goToPreviousPage()"
+          [disabled]="currentPage === 1"
+        >
+          Precedent
+        </button>
+        <button
+          type="button"
+          class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          (click)="goToNextPage()"
+          [disabled]="currentPage === getTotalPages()"
+        >
+          Suivant
+        </button>
+      </div>
+    </nav>
+  </ng-container>
+</section>

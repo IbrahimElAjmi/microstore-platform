@@ -1,0 +1,39 @@
+/* Footer component styles - Electric cyan theme */
+
+footer {
+  margin-top: auto;
+}
+
+/* Link hover effects */
+footer a {
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: var(--primary-light);
+}
+
+/* Social media icons */
+footer svg {
+  transition: transform 0.2s ease;
+}
+
+footer a:hover svg {
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  footer {
+    padding: 2rem 1rem;
+  }
+  
+  footer .grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  footer .grid > div {
+    text-align: center;
+  }
+}

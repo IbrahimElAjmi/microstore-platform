@@ -1,0 +1,96 @@
+<section class="home-page">
+  <header class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Plateforme E-Commerce Premium</p>
+      <h1>E-Store</h1>
+      <p class="hero-copy">
+        Découvrez une expérience d'achat unique avec notre catalogue sélectionné, 
+        une gestion de panier intuitive et un suivi de commande en temps réel.
+      </p>
+      <div class="hero-actions">
+        <a routerLink="/products" class="primary-link">Explorer le catalogue</a>
+        <a routerLink="/about" class="secondary-link">En savoir plus</a>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <span>Votre Shopping</span>
+      <strong>Simple • Rapide • Sécurisé</strong>
+      <p>Tout ce dont vous avez besoin pour une expérience d'achat exceptionnelle.</p>
+    </div>
+  </header>
+
+  <div *ngIf="successMessage" class="alert success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="alert error">{{ errorMessage }}</div>
+
+  <section class="section-block" *ngIf="categories.length > 0">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Catégories</p>
+        <h2>Parcourir par catégorie</h2>
+      </div>
+      <a routerLink="/products">Voir tout le catalogue</a>
+    </div>
+
+    <div class="category-grid">
+      <button type="button" *ngFor="let category of categories" class="category-card" (click)="navigateToCategory(category.id)">
+        <span>{{ getCategoryIcon(category.name) }}</span>
+        <strong>{{ category.name }}</strong>
+        <small>Voir les articles</small>
+      </button>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Notre sélection</p>
+        <h2>Produits en vedette</h2>
+      </div>
+      <a routerLink="/products">Découvrir tout</a>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner" role="status"></div>
+      <span>Chargement des produits...</span>
+    </div>
+
+    <div *ngIf="!isLoading && featuredProducts.length === 0" class="empty-state">
+      <strong>0</strong>
+      <p>Aucun produit disponible pour le moment.</p>
+    </div>
+
+    <div *ngIf="!isLoading && featuredProducts.length > 0" class="product-grid">
+      <article *ngFor="let product of featuredProducts" class="product-card">
+        <img [src]="getProductImage(product.imageUrl, product.id)" [alt]="product.name">
+        <div class="product-body">
+          <span>{{ product.categoryName || 'Categorie' }}</span>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.description || 'Description indisponible.' }}</p>
+          <div class="product-footer">
+            <strong>{{ formatPrice(product.price) }}</strong>
+            <button type="button" *ngIf="!isAdmin()" (click)="addToCart(product.id)" [disabled]="addingProductId === product.id">
+              {{ addingProductId === product.id ? 'Ajout...' : 'Ajouter' }}
+            </button>
+            <a *ngIf="isAdmin()" routerLink="/admin" class="admin-link">Gerer</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="trust-strip">
+    <div>
+      <strong>Livraison Suivie</strong>
+      <span>Suivi en temps réel de vos commandes</span>
+    </div>
+    <div>
+      <strong>Paiement Sécurisé</strong>
+      <span>Processus de paiement et facturation intégrés</span>
+    </div>
+    <div>
+      <strong>Service Client</strong>
+      <span>Support dédié disponible depuis l'application</span>
+    </div>
+  </section>
+</section>

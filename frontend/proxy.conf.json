@@ -1,0 +1,42 @@
+{
+  "/customer-api": {
+    "target": "http://localhost:9091",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/customer-api": ""
+    }
+  },
+  "/catalog-api": {
+    "target": "http://localhost:9092",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/catalog-api": ""
+    }
+  },
+  "/inventory-api": {
+    "target": "http://localhost:9093",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/inventory-api": ""
+    }
+  },
+  "/order-api": {
+    "target": "http://localhost:9094",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/order-api": ""
+    }
+  },
+  "/billing-api": {
+    "target": "http://localhost:9095",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/billing-api": ""
+    }
+  }
+}
